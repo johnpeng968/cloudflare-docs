@@ -9,7 +9,7 @@ Customize the sandbox container image with your own packages, tools, and configu
 
 ## Base image
 
-The Sandbox SDK uses a Ubuntu-based Linux container with Python, Node.js (via Bun), and common development tools pre-installed:
+The Sandbox SDK uses a Ubuntu-based Linux container with common development tools pre-installed:
 
 ```dockerfile
 FROM docker.io/cloudflare/sandbox:0.3.3
@@ -23,14 +23,51 @@ Always match the Docker image version to your npm package version. If you're usi
 See [Version compatibility](/sandbox/concepts/sandboxes/#version-compatibility) for troubleshooting version mismatch warnings.
 :::
 
-**What's included:**
+## Container variants
 
+The Sandbox SDK provides three Docker image variants optimized for different use cases:
+
+### Default (no Python)
+
+```dockerfile
+FROM docker.io/cloudflare/sandbox:0.6.0
+```
+
+**What's included:**
 - Ubuntu 22.04 LTS base
-- Python 3.11.14 with pip and venv
 - Node.js 20 LTS with npm
 - Bun 1.x (JavaScript/TypeScript runtime)
-- Pre-installed Python packages: matplotlib, numpy, pandas, ipython
 - System utilities: curl, wget, git, jq, zip, unzip, file, procps, ca-certificates
+
+**Use when:** You need Node.js/JavaScript execution but do not require Python capabilities.
+
+### Python
+
+```dockerfile
+FROM docker.io/cloudflare/sandbox:0.6.0-python
+```
+
+**What's included:**
+- Everything from the default variant
+- Python 3.11.14 with pip and venv
+- Pre-installed Python packages: matplotlib, numpy, pandas, ipython
+
+**Use when:** You need Python execution, data analysis, or the Code Interpreter API.
+
+### OpenCode
+
+```dockerfile
+FROM docker.io/cloudflare/sandbox:0.6.0-opencode
+```
+
+**What's included:**
+- Everything from the default variant
+- [OpenCode](https://opencode.ai/) CLI and web server
+- Port 4096 exposed for OpenCode web UI
+
+**Use when:** You want to run OpenCode (AI coding agent) inside Sandbox containers.
+
+**Related:** [OpenCode integration guide](/sandbox/guides/opencode-integration/)
 
 ## Creating a custom image
 

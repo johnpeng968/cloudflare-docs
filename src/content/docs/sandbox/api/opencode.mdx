@@ -1,0 +1,224 @@
+---
+title: OpenCode
+pcx_content_type: concept
+sidebar:
+  order: 9
+---
+
+import { TypeScriptExample } from "~/components";
+
+Run OpenCode (an AI coding agent) inside Sandbox containers with programmatic SDK access or web UI proxy capabilities.
+
+## Methods
+
+### `createOpencode()`
+
+Creates an OpenCode server inside a Sandbox container and returns a typed SDK client for programmatic control.
+
+```ts
+const { client, server } = await createOpencode<TClient>(
+  sandbox: Sandbox,
+  options?: OpencodeOptions
+): Promise<OpencodeResult<TClient>>
+```
+
+**Parameters**:
+- `sandbox` - The Sandbox instance to run OpenCode in (required)
+- `options` (optional):
+  - `port` - Port for OpenCode server (default: 4096)
+  - `config` - OpenCode configuration object
+  - `logger` - Logger instance for debug output
+
+**Returns**: `Promise<OpencodeResult<TClient>>` with:
+- `client` - Typed OpenCode SDK client with Sandbox transport
+- `server` - Server lifecycle management object with:
+  - `port` - Port the server is running on
+  - `url` - Base URL (for example, `http://localhost:4096`)
+  - `process` - Underlying Sandbox process handle
+  - `stop()` - Function to stop the server gracefully
+
+<TypeScriptExample>
+```
+import { getSandbox } from '@cloudflare/sandbox';
+import { createOpencode } from '@cloudflare/sandbox/opencode';
+import type { OpencodeClient } from '@opencode-ai/sdk';
+
+const sandbox = getSandbox(env.Sandbox, 'my-agent');
+const { client, server } = await createOpencode<OpencodeClient>(sandbox, {
+  config: {
+    provider: {
+      anthropic: {
+        apiKey: env.ANTHROPIC_API_KEY
+      }
+    }
+  }
+});
+
+const session = await client.session.create({
+  body: { title: 'My Session' }
+});
+
+await server.stop();
+```
+</TypeScriptExample>
+
+**Process reuse**:
+
+If an OpenCode server is already running on the specified port, `createOpencode()` reuses it instead of starting a new one. This improves performance when handling multiple concurrent requests.
+
+**Error handling**:
+
+Throws `OpencodeStartupError` if the server fails to start. The error includes stderr output from the OpenCode process for debugging.
+
+### `proxyToOpencode()`
+
+Proxies HTTP requests to OpenCode running in a Sandbox container. This is the simplest way to expose OpenCode's web UI through a Cloudflare Worker.
+
+```ts
+const response = await proxyToOpencode(
+  request: Request,
+  sandbox: Sandbox,
+  options?: ProxyToOpencodeOptions
+): Promise<Response>
+```
+
+**Parameters**:
+- `request` - The incoming HTTP request (required)
+- `sandbox` - The Sandbox instance to run OpenCode in (required)
+- `options` (optional):
+  - `port` - Port for OpenCode server (default: 4096)
+  - `config` - OpenCode configuration object
+  - `logger` - Logger instance for debug output
+
+**Returns**: `Promise<Response>` - The proxied response from OpenCode
+
+<TypeScriptExample>
+```
+import { getSandbox } from '@cloudflare/sandbox';
+import { proxyToOpencode } from '@cloudflare/sandbox/opencode';
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const sandbox = getSandbox(env.Sandbox, 'opencode');
+    return proxyToOpencode(request, sandbox, {
+      config: {
+        provider: {
+          anthropic: {
+            apiKey: env.ANTHROPIC_API_KEY
+          }
+        }
+      }
+    });
+  }
+};
+```
+</TypeScriptExample>
+
+**Automatic localhost redirect**:
+
+For browser navigations, `proxyToOpencode()` automatically redirects `localhost` or `127.0.0.1` requests to include a `?url=` parameter. This ensures OpenCode's web UI uses the correct API endpoint instead of trying to connect to the browser's localhost.
+
+**Error handling**:
+
+Returns a `503 Service Unavailable` response with JSON error details if the OpenCode server fails to start.
+
+## Types
+
+### `OpencodeOptions`
+
+Configuration options for `createOpencode()`:
+
+```ts
+interface OpencodeOptions {
+  port?: number;                     // Port for OpenCode server (default: 4096)
+  config?: Record<string, unknown>;  // OpenCode configuration
+  logger?: Logger;                   // Logger for debug output
+}
+```
+
+### `ProxyToOpencodeOptions`
+
+Configuration options for `proxyToOpencode()`:
+
+```ts
+interface ProxyToOpencodeOptions {
+  port?: number;                     // Port for OpenCode server (default: 4096)
+  config?: Record<string, unknown>;  // OpenCode configuration
+  logger?: Logger;                   // Logger for debug output
+}
+```
+
+### `OpencodeResult`
+
+Result from `createOpencode()`:
+
+```ts
+interface OpencodeResult<TClient = unknown> {
+  client: TClient;      // OpenCode SDK client with Sandbox transport
+  server: OpencodeServer; // Server lifecycle management
+}
+```
+
+### `OpencodeServer`
+
+Server lifecycle management:
+
+```ts
+interface OpencodeServer {
+  port: number;                       // Port the server is running on
+  url: string;                        // Base URL (http://localhost:{port})
+  process: Process;                   // Underlying Sandbox process handle
+  stop(): Promise<void>;              // Stop the server gracefully
+}
+```
+
+### `OpencodeStartupError`
+
+Error thrown when OpenCode server fails to start:
+
+```ts
+class OpencodeStartupError extends Error {
+  readonly code: ErrorCode;
+  constructor(message: string, options?: ErrorOptions);
+}
+```
+
+## Configuration
+
+### API key extraction
+
+API keys from `config.provider.*` are automatically extracted and set as environment variables. OpenCode expects provider-specific environment variables (for example, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`).
+
+<TypeScriptExample>
+```
+await createOpencode(sandbox, {
+  config: {
+    provider: {
+      anthropic: { apiKey: env.ANTHROPIC_API_KEY },
+      openai: { apiKey: env.OPENAI_API_KEY }
+    }
+  }
+});
+
+// Automatically sets:
+// ANTHROPIC_API_KEY=...
+// OPENAI_API_KEY=...
+```
+</TypeScriptExample>
+
+### Custom port
+
+<TypeScriptExample>
+```
+const { client } = await createOpencode(sandbox, {
+  port: 8080,
+  config: { provider: { anthropic: { apiKey: env.KEY } } }
+});
+```
+</TypeScriptExample>
+
+## Related resources
+
+- [OpenCode integration guide](/sandbox/guides/opencode-integration/) - Complete usage guide
+- [Container variants](/sandbox/configuration/dockerfile/#container-variants) - Docker image options
+- [Process management](/sandbox/api/processes/) - Background process API
