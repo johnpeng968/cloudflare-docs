@@ -95,7 +95,9 @@ export default {
       config: {
         provider: {
           anthropic: {
-            apiKey: env.ANTHROPIC_API_KEY
+            options: {
+              apiKey: env.ANTHROPIC_API_KEY
+            }
           }
         }
       }
@@ -160,7 +162,9 @@ const { client, server } = await createOpencode<OpencodeClient>(sandbox, {
   config: {
     provider: {
       anthropic: {
-        apiKey: env.ANTHROPIC_API_KEY
+        options: {
+          apiKey: env.ANTHROPIC_API_KEY
+        }
       }
     }
   }
@@ -264,7 +268,9 @@ const { client, server } = await createOpencode(sandbox, {
   config: {
     provider: {
       anthropic: {
-        apiKey: env.ANTHROPIC_API_KEY
+        options: {
+          apiKey: env.ANTHROPIC_API_KEY
+        }
       }
     }
   }
@@ -282,10 +288,14 @@ const { client } = await createOpencode(sandbox, {
   config: {
     provider: {
       anthropic: {
-        apiKey: env.ANTHROPIC_API_KEY
+        options: {
+          apiKey: env.ANTHROPIC_API_KEY
+        }
       },
       openai: {
-        apiKey: env.OPENAI_API_KEY
+        options: {
+          apiKey: env.OPENAI_API_KEY
+        }
       }
     }
   }
@@ -307,7 +317,9 @@ const { client } = await createOpencode(sandbox, {
   config: {
     provider: {
       anthropic: {
-        apiKey: env.ANTHROPIC_API_KEY
+        options: {
+          apiKey: env.ANTHROPIC_API_KEY
+        }
       }
     }
   },
@@ -341,7 +353,9 @@ try {
     config: {
       provider: {
         anthropic: {
-          apiKey: env.ANTHROPIC_API_KEY
+          options: {
+            apiKey: env.ANTHROPIC_API_KEY
+          }
         }
       }
     }
@@ -379,7 +393,9 @@ export default {
         config: {
           provider: {
             anthropic: {
-              apiKey: env.ANTHROPIC_API_KEY
+              options: {
+                apiKey: env.ANTHROPIC_API_KEY
+              }
             }
           }
         }
@@ -413,7 +429,9 @@ export default {
       config: {
         provider: {
           anthropic: {
-            apiKey: env.ANTHROPIC_API_KEY
+            options: {
+              apiKey: env.ANTHROPIC_API_KEY
+            }
           }
         }
       }

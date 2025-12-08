@@ -48,7 +48,9 @@ const { client, server } = await createOpencode<OpencodeClient>(sandbox, {
   config: {
     provider: {
       anthropic: {
-        apiKey: env.ANTHROPIC_API_KEY
+        options: {
+          apiKey: env.ANTHROPIC_API_KEY
+        }
       }
     }
   }
@@ -104,7 +106,9 @@ export default {
       config: {
         provider: {
           anthropic: {
-            apiKey: env.ANTHROPIC_API_KEY
+            options: {
+              apiKey: env.ANTHROPIC_API_KEY
+            }
           }
         }
       }
@@ -194,8 +198,12 @@ API keys from `config.provider.*` are automatically extracted and set as environ
 await createOpencode(sandbox, {
   config: {
     provider: {
-      anthropic: { apiKey: env.ANTHROPIC_API_KEY },
-      openai: { apiKey: env.OPENAI_API_KEY }
+      anthropic: {
+        options: { apiKey: env.ANTHROPIC_API_KEY }
+      },
+      openai: {
+        options: { apiKey: env.OPENAI_API_KEY }
+      }
     }
   }
 });
@@ -212,7 +220,13 @@ await createOpencode(sandbox, {
 ```
 const { client } = await createOpencode(sandbox, {
   port: 8080,
-  config: { provider: { anthropic: { apiKey: env.KEY } } }
+  config: {
+    provider: {
+      anthropic: {
+        options: { apiKey: env.KEY }
+      }
+    }
+  }
 });
 ```
 </TypeScriptExample>
